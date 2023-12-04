@@ -2,7 +2,16 @@ package Server;
 
 import java.io.Serializable;
 
-public class HalliGalliCard{
+//**
+// Name : HalliGalliCard
+// Type : Class
+// Description : HalliGalli 게임에서 사용되는 카드를 나타냄.
+//*******************************************************************
+
+public class HalliGalliCard {
+    /**
+     * 카드에 가능한 과일 유형을 나타내는 열거형.
+     */
     public enum Fruit {
         BANANA,
         PLUM,

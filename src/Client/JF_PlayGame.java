@@ -27,7 +27,7 @@ public class JF_PlayGame extends JFrame {
     List<Btn_Players> btnPlayers;
     List<JLabel> Lb_PlayersCardCount;
 
-    JButton Btn_Bell, Btn_Draw;
+    JButton Btn_Bell, Btn_Draw, Btn_ExitRoom;
     JTextArea textArea;
     JScrollPane scrollPane;
     JScrollBar verticalScrollBar;
@@ -37,6 +37,7 @@ public class JF_PlayGame extends JFrame {
 
     int Myorder;
     int numofPeople;
+    boolean isDead = false;
 
     public JF_PlayGame(HGClientMain client){
         this.client = client;
@@ -97,6 +98,22 @@ public class JF_PlayGame extends JFrame {
         verticalScrollBar = scrollPane.getVerticalScrollBar();
         add(scrollPane);
 
+        Btn_ExitRoom = new JButton("방 나가기");
+        Btn_ExitRoom.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    dos.writeUTF(MessageTag.GEXIT+"");
+                    ExitRoom();
+                } catch (IOException ex){
+                    System.out.println(ex.toString());
+                }
+            }
+        });
+        Btn_ExitRoom.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
+        Btn_ExitRoom.setBounds(763, 591, 171, 62);
+        Btn_ExitRoom.setVisible(false);
+        contentPane.add(Btn_ExitRoom);
+
 
         gameControlThread = new GameControlThread();
     }
@@ -143,22 +160,20 @@ public class JF_PlayGame extends JFrame {
         if(numofPeople == 3){
             btnPlayers.get(Myorder).setBounds(436, 428, 150, 225);
             Lb_PlayersCardCount.get(Myorder).setBounds(351, 620, 87, 33);
-            for(int i=1;i<=2;i++){
-                btnPlayers.get((i+Myorder)%3).setBounds(643, 246, 225, 150);
 
-                btnPlayers.get((i+Myorder)%3).setBounds(135, 246, 225, 150);
-            }
+            btnPlayers.get((1+Myorder)%3).setBounds(643, 246, 225, 150);
+
+            btnPlayers.get((2+Myorder)%3).setBounds(135, 246, 225, 150);
+
         }
 
         if(numofPeople == 4){
             btnPlayers.get(Myorder).setBounds(394, 393, 150, 225);
             Lb_PlayersCardCount.get(Myorder).setBounds(300,549,87,33);
 
-            for(int i=1;i<=3;i++){
-                btnPlayers.get((i+Myorder)%4).setBounds(570, 246, 225, 150);
-                btnPlayers.get((i+Myorder)%4).setBounds(394, 23, 150, 225);
-                btnPlayers.get((i+Myorder)%4).setBounds(135, 246, 225, 150);
-            }
+            btnPlayers.get((1+Myorder)%4).setBounds(570, 246, 225, 150);
+            btnPlayers.get((2+Myorder)%4).setBounds(394, 23, 150, 225);
+            btnPlayers.get((3+Myorder)%4).setBounds(135, 246, 225, 150);
         }
 
         for(Btn_Players btn_player: btnPlayers) {
@@ -168,6 +183,7 @@ public class JF_PlayGame extends JFrame {
         for(JLabel jLabel : Lb_PlayersCardCount)
             contentPane.add(jLabel);
 
+        client.ResetFrame();
         super.setVisible(true);
     }
 
@@ -186,11 +202,13 @@ public class JF_PlayGame extends JFrame {
                     String[] m = msg.split("//");
 
                     if(m[0].equals(MessageTag.CTURN+"")) {
-                        if(Integer.parseInt(m[1]) == Myorder) {
-                            Btn_Draw.setEnabled(true);
-                        }
-                        else{
-                            Btn_Draw.setEnabled(false);
+                        if(!isDead) {
+                            Btn_Bell.setEnabled(true);
+                            if (Integer.parseInt(m[1]) == Myorder) {
+                                Btn_Draw.setEnabled(true);
+                            } else {
+                                Btn_Draw.setEnabled(false);
+                            }
                         }
                         textArea.append(m[2] + "player turn\n");
                     }
@@ -211,18 +229,59 @@ public class JF_PlayGame extends JFrame {
                     }
 
                     if(m[0].equals(MessageTag.PBELL+"")){
+                        Btn_Bell.setEnabled(false);
                         textArea.append(m[1] + "push bell" + m[2]+"\n");
                     }
 
-                    if(m[0].equals(MessageTag.DCARD+"")){
+                    if(m[0].equals(MessageTag.DCARD+"")) {
                         textArea.append(m[1] + "draw\n");
                     }
+
+                    if(m[0].equals(MessageTag.GDEAD+"")) {
+                        if(m.length > 1) {
+                            String[] players = m[1].split("@@");
+
+                            for (String player : players) {
+                                if (client.csUser.Name.equals(player)) {
+                                    Btn_Draw.setEnabled(false);
+                                    Btn_Bell.setEnabled(false);
+                                    Btn_ExitRoom.setVisible(true);
+                                }
+
+                                for (Btn_Players btn_player : btnPlayers) {
+                                    if (btn_player.nickName.equals(player)) {
+                                        btn_player.setText("Dead!!");
+                                        btnPlayers.remove(btn_player);
+                                        numofPeople--;
+                                    }
+                                }
+                                textArea.append(player + " dead!\n");
+                            }
+                        }
+
+                        textArea.append("종 울림! 3초 대기.. \n");
+                    }
+
+                    if(m[0].equals(MessageTag.GEND)){
+                        Btn_ExitRoom.setVisible(true);
+                    }
+
+
                     verticalScrollBar.setValue(verticalScrollBar.getMaximum());
+                    this.sleep(10);
                 }
             } catch (IOException e){
                 System.out.println(e.toString());
+            } catch (InterruptedException e){
+                ;
             }
         }
+    }
+
+    void ExitRoom(){
+        gameControlThread.interrupt();
+        client.ResetFrame();
+        client.jf_robby.setVisible(true);
     }
 
 

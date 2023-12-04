@@ -2,7 +2,6 @@ package Client;
 
 import Common.MessageTag;
 
-import javax.imageio.IIOException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -12,7 +11,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 
-public class JF_WaitRoom extends JFrame {
+//*******************************************************************
+// Name : JF_Robby
+// Type : Class
+// Description :  로비 화면 프레임을 구현한 클래스.
+//*******************************************************************
+
+public class JF_Robby extends JFrame {
 	HGClientMain client;
 	private JPanel contentPane;
 
@@ -21,7 +26,7 @@ public class JF_WaitRoom extends JFrame {
 
 	CreateRoomDialog createRoomDialog;
 
-	public JF_WaitRoom(HGClientMain client) {
+	public JF_Robby(HGClientMain client) {
 		this.client = client;
 		setTitle("대기실");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -40,14 +45,6 @@ public class JF_WaitRoom extends JFrame {
 		Model_RoomList = new DefaultListModel();
 		JL_RoomList = new JList(Model_RoomList);
 		JL_RoomList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JL_RoomList.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				if(!e.getValueIsAdjusting()){
-					System.out.println("selected: "+ JL_RoomList.getSelectedValue());
-				}
-			}
-		});
 
 		JScrollPane SP_RoomList = new JScrollPane(JL_RoomList);
 		SP_RoomList.setBounds(15, 40, 411, 519);
@@ -82,12 +79,12 @@ public class JF_WaitRoom extends JFrame {
 				try {
 					client.csUser.sendServer(MessageTag.EROOM + "//"+s[0]);
 
-					client.jf_waitRoom.setEnabled(false);
+					client.jf_robby.setEnabled(false);
 					client.jf_readyRoom.setVisible(true);
 					client.jf_readyRoom.Init(false);
 					client.jf_readyRoom.Btn_Ready.setVisible(true);
 				} catch (IOException ex){
-					JOptionPane.showMessageDialog(client.jf_waitRoom, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
@@ -142,12 +139,12 @@ public class JF_WaitRoom extends JFrame {
 						client.csUser.sendServer(MessageTag.CROOM +"//"+roomName+"//"+numOfPeopleStr);
 						dispose();
 
-						client.jf_waitRoom.setEnabled(false);
+						client.jf_robby.setEnabled(false);
 						client.jf_readyRoom.setVisible(true);
 						client.jf_readyRoom.Init(true);
 						client.jf_readyRoom.Btn_GameStart.setVisible(true);
 					} catch (IOException ex) {
-						JOptionPane.showMessageDialog(client.jf_waitRoom, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+						JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			});

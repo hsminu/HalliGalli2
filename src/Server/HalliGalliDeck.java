@@ -7,10 +7,6 @@ import java.util.List;
 public class HalliGalliDeck {
     private List<HalliGalliCard> deck;
 
-    public HalliGalliDeck() {
-
-    }
-
     public void initializeDeck() {
         deck = Collections.synchronizedList(new ArrayList<>());
 
@@ -39,11 +35,4 @@ public class HalliGalliDeck {
         return null; // 덱이 비어있으면 null 반환
     }
 
-    public int remainingCards() {
-        return deck.size();
-    }
-
-    public List<HalliGalliCard> getDeck(){
-        return deck;
-    }
 }

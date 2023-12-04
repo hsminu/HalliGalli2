@@ -12,7 +12,7 @@ import java.util.List;
 // Name : HGServerMain
 // Type : Class
 // Description : 할리갈리 게임 서버의 메인 클래스
-//******************************************************************
+//*******************************************************************
 
 public class HGServerMain {
     ServerSocket ss = null;  // 들어오는 연결을 수락하는 ServerSocket

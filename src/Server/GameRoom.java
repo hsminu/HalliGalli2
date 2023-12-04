@@ -8,17 +8,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+//*******************************************************************
+// Name : GameRoom
+// Type : Class
+// Description : 게임이 진행되는 방을 나타내는 클래스
+//               플레이어의 방 생성, 입장 드의 기능 구현.
+//               Tag 단위로 들어오는 메시지를 처리.
+//******************************************************************
+
 public class GameRoom extends Thread{
 
     HalliGalliDeck deck;
     List<HalliGalliCard> card_underbell;
 
     List<GameUser> allGu;
+    List<GameUser> aliveGu;
     List<GameUser> deadGu;
 
     String title;
     int numofUser;
-    int remainingUser;
+    int aliveUser;
 
     boolean isDrawCard = false;
     boolean isPushBell = false;
@@ -28,14 +37,16 @@ public class GameRoom extends Thread{
     GameRoom(List<SCUser> lscu, String title, int numofUser) {
         this.title = title;
         this.numofUser = numofUser;
-        this.remainingUser = numofUser;
+        this.aliveUser = numofUser;
 
         allGu = Collections.synchronizedList(new ArrayList<>());
         deadGu = Collections.synchronizedList(new ArrayList<>());
+        aliveGu = Collections.synchronizedList(new ArrayList<>());
 
         for(SCUser scu : lscu) {
             scu.myGRoom = this;
             scu.gamestart = true;
+
             allGu.add(new GameUser(scu));
         }
 
@@ -45,7 +56,7 @@ public class GameRoom extends Thread{
         for(GameUser gu : allGu){
             msg += gu.nickname + "@@";
         }
-        Send(msg);
+        SendAllUser(msg);
 
         deck = new HalliGalliDeck();
         deck.initializeDeck();
@@ -81,6 +92,8 @@ public class GameRoom extends Thread{
         }
 
         for(GameUser gu : allGu) {
+            aliveGu.add(gu);
+
             gu.start();
         }
     }
@@ -91,73 +104,82 @@ public class GameRoom extends Thread{
         String msg;
 
         synchronized (this) {
-            while (true) {
-                msg = MessageTag.CTURN + "//" + order % remainingUser + "//" + allGu.get(order % remainingUser).nickname;
-                Send(msg);
-
-                Send(FloorCards());
-                Send(RemainCards());
-
+            try {
                 while (true) {
-                    if (isPushBell) {
-                        msg = MessageTag.PBELL + "//" + allGu.get(eventPlayerorder).nickname + "//";
 
-                        if (isSuccessBell()) {
-                            msg += MessageTag.SBELL + "";
-                            for (GameUser gu : allGu) {
-                                while (!gu.floor.isEmpty())
-                                    allGu.get(eventPlayerorder).hand.add(gu.floor.remove(0));
-                            }
-                            while (!card_underbell.isEmpty())
-                                allGu.get(eventPlayerorder).hand.add(card_underbell.remove(0));
+                    msg = MessageTag.CTURN + "//" + order % aliveUser + "//" + aliveGu.get(order % aliveUser).nickname;
+                    SendAllUser(msg);
 
-                            Collections.shuffle(allGu.get(eventPlayerorder).hand);
-                        } else {
-                            msg += MessageTag.FBELL + "";
-                            card_underbell.add(allGu.get(eventPlayerorder).hand.remove(0));
+                    SendAllUser(FloorCards());
+                    SendAllUser(RemainCards());
+
+                    while (true) {
+
+                        this.sleep(10);
+
+                        if (isDrawCard) {
+                            System.out.println("DrawCard");
+                            msg = MessageTag.DCARD + "//" + allGu.get(eventPlayerorder).nickname;
+                            aliveGu.get(eventPlayerorder).drawHandCard();
+
+                            SendAllUser(msg);
+                            order++;
+
+                            isDrawCard = false;
+                            break;
                         }
 
-                        Send(msg);
-                        order = eventPlayerorder;
+                        this.sleep(10);
 
-                        msg = MessageTag.GDEAD +"//";
-                        for(GameUser gu : allGu){
-                            if(gu.hand.isEmpty()){
-                                msg += gu.nickname + "@@";
-                                deadGu.add(gu);
-                                remainingUser = allGu.size();
+                        if (isPushBell) {
+                            msg = MessageTag.PBELL + "//" + aliveGu.get(eventPlayerorder).nickname + "//";
+
+                            if (isSuccessBell()) {
+                                msg += MessageTag.SBELL + "";
+                                for (GameUser gu : aliveGu) {
+                                    while (!gu.floor.isEmpty())
+                                        aliveGu.get(eventPlayerorder).hand.add(gu.floor.remove(0));
+                                }
+                                while (!card_underbell.isEmpty())
+                                    aliveGu.get(eventPlayerorder).hand.add(card_underbell.remove(0));
+
+                                Collections.shuffle(aliveGu.get(eventPlayerorder).hand);
+                            } else {
+                                msg += MessageTag.FBELL + "";
+                                card_underbell.add(aliveGu.get(eventPlayerorder).hand.remove(0));
                             }
+
+                            SendAllUser(msg);
+                            order = eventPlayerorder;
+
+                            msg = MessageTag.GDEAD + "//";
+                            for (GameUser gu : aliveGu) {
+                                if (gu.hand.isEmpty()) {
+                                    msg += gu.nickname + "@@";
+
+                                    aliveGu.remove(gu);
+                                    deadGu.add(gu);
+                                    aliveUser = aliveGu.size();
+                                }
+                            }
+                            SendAllUser(msg);
+
+                            Thread.sleep(3000);
+
+                            isPushBell = false;
+                            break;
                         }
-                        Send(msg);
-
-                        isPushBell = false;
-                        break;
                     }
 
-                    try {
-                        this.sleep(10);
-                    } catch (InterruptedException e){
-                        System.out.println(e.toString());
-                    }
+                    if(aliveUser == 1) {
+                        msg = MessageTag.GEND +"";
+                        SendAllUser(msg);
 
-                    if (isDrawCard) {
-                        System.out.println("DrawCard");
-                        msg = MessageTag.DCARD + "//" + allGu.get(eventPlayerorder).nickname;
-                        allGu.get(eventPlayerorder).drawHandCard();
-
-                        Send(msg);
-                        order++;
-
-                        isDrawCard = false;
-                        break;
-                    }
-
-                    try {
-                        this.sleep(10);
-                    } catch (InterruptedException e){
-                        System.out.println(e.toString());
+                        this.interrupt();
                     }
                 }
+            } catch (InterruptedException e) {
+                System.out.println("[Server] " + title + " 종료");
             }
         }
     }
@@ -201,9 +223,19 @@ public class GameRoom extends Thread{
         return false;
     }
 
-    void Send(String msg){
+    void SendAllUser(String msg){
         try {
             for (GameUser gameUser : allGu) {
+                gameUser.dos.writeUTF(msg);
+            }
+        } catch (IOException e){
+            System.out.println();
+        }
+    }
+
+    void SendAliveUser(String msg){
+        try {
+            for (GameUser gameUser : aliveGu) {
                 gameUser.dos.writeUTF(msg);
             }
         } catch (IOException e){
@@ -281,10 +313,22 @@ public class GameRoom extends Thread{
                             isDrawCard = true;
                             eventPlayerorder = Integer.parseInt(m[1]);
                         }
+
+                        if(m[0].equals(MessageTag.GEXIT + "")){
+                            allGu.remove(this);
+
+                            this.scu.gamestart = false;
+                            this.scu.notify();
+                            this.interrupt();
+                        }
+
+                        this.sleep(10);
                     }
                 }
             } catch (IOException e){
                 System.out.println(e.toString());
+            } catch (InterruptedException e){
+                ;
             }
         }
     }

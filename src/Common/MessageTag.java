@@ -27,7 +27,10 @@ public enum MessageTag {
     DCARD,  //카드 놓기
     SBELL,  //벨 누르기 성공
     FBELL,  //벨 누르기 실패
+    GWAIT,
     GDEAD,  //게임 탈락
+    GEXIT,
+    GEND,
     WIN,
     LOSE;
 }

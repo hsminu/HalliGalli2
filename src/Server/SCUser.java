@@ -122,7 +122,7 @@ public class SCUser extends Thread{
                                 dos.writeUTF(MessageTag.EROOM+"//"+MessageTag.OKAY);
                                     System.out.println("[Server] " + nickname + " : 방 '" + m[1] + "' 입장");
                             }
-                            else{
+                            else {
                                 dos.writeUTF(MessageTag.EROOM+"//"+MessageTag.FAIL+"::Over Person");
                                 System.out.println("[Server] " + nickname +":인원 초과. 입장 불가능");
                             }
@@ -144,15 +144,23 @@ public class SCUser extends Thread{
                     sendRoom(roomUser());
                 }
 
+                //게임 시작 요청
                 if(m[0].equals(MessageTag.START+"")){
                     GameRoom gr = new GameRoom(myRoom.scu, myRoom.title, myRoom.playercount);
                     gr.start();
+                    Rooms.remove(myRoom);
                 }
 
 
 
-                if(gamestart)
-                    myGRoom.join();
+                if(gamestart) {
+                    synchronized (this){
+                        this.wait();
+                    }
+
+                    myRoom = null;
+                    waitUsers.add(this);
+                }
 
             }
         } catch (IOException e){

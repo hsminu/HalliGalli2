@@ -1,17 +1,16 @@
 package Client;
 
 public class HGClientMain {
-
     CSUser csUser;
 
     JF_Login jf_login;
-    JF_WaitRoom jf_waitRoom;
+    JF_Robby jf_robby;
     JF_ReadyRoom jf_readyRoom;
     JF_PlayGame jf_playGame;
 
     public HGClientMain() {
         jf_login = new JF_Login(this);
-        jf_waitRoom = new JF_WaitRoom(this);
+        jf_robby = new JF_Robby(this);
         jf_readyRoom = new JF_ReadyRoom(this);
         jf_playGame = new JF_PlayGame(this);
 
@@ -26,7 +25,7 @@ public class HGClientMain {
         }
         if(viewName.equals("JF_WaitRoom")){
             ResetFrame();
-            jf_waitRoom.setVisible(true);
+            jf_robby.setVisible(true);
         }
         if(viewName.equals("JF_ReadyRoom")){
             jf_readyRoom.setVisible(true);
@@ -39,7 +38,7 @@ public class HGClientMain {
 
     void ResetFrame(){
         jf_login.setVisible(false);
-        jf_waitRoom.setVisible(false);
+        jf_robby.setVisible(false);
         jf_playGame.setVisible(false);
     }
 
