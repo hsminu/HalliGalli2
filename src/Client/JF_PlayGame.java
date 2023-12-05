@@ -162,18 +162,26 @@ public class JF_PlayGame extends JFrame {
             Lb_PlayersCardCount.get(Myorder).setBounds(351, 620, 87, 33);
 
             btnPlayers.get((1+Myorder)%3).setBounds(643, 246, 225, 150);
+            Lb_PlayersCardCount.get((1+Myorder)%3).setBounds(781, 393, 87, 33);
 
             btnPlayers.get((2+Myorder)%3).setBounds(135, 246, 225, 150);
+            Lb_PlayersCardCount.get((2+Myorder)%3).setBounds(138, 213, 87, 33);
+
 
         }
 
         if(numofPeople == 4){
-            btnPlayers.get(Myorder).setBounds(394, 393, 150, 225);
-            Lb_PlayersCardCount.get(Myorder).setBounds(300,549,87,33);
+            btnPlayers.get(Myorder).setBounds(436, 428, 150, 225);
+            Lb_PlayersCardCount.get(Myorder).setBounds(351, 620, 87, 33);
 
-            btnPlayers.get((1+Myorder)%4).setBounds(570, 246, 225, 150);
-            btnPlayers.get((2+Myorder)%4).setBounds(394, 23, 150, 225);
+            btnPlayers.get((1+Myorder)%4).setBounds(643, 246, 225, 150);
+            Lb_PlayersCardCount.get((1+Myorder)%4).setBounds(781, 393, 87, 33);
+
+            btnPlayers.get((2+Myorder)%4).setBounds(436, 10, 150, 225);
+            Lb_PlayersCardCount.get((2+Myorder)%4).setBounds(583, 10, 87, 33);
+
             btnPlayers.get((3+Myorder)%4).setBounds(135, 246, 225, 150);
+            Lb_PlayersCardCount.get((3+Myorder)%4).setBounds(138, 213, 87, 33);
         }
 
         for(Btn_Players btn_player: btnPlayers) {
