@@ -262,10 +262,9 @@ public class JF_PlayGame extends JFrame {
                         textArea.append("종 울림! 3초 대기.. \n");
                     }
 
-                    if(m[0].equals(MessageTag.GEND)){
+                    if(m[0].equals(MessageTag.GEND+"")){
                         Btn_ExitRoom.setVisible(true);
                     }
-
 
                     verticalScrollBar.setValue(verticalScrollBar.getMaximum());
                     this.sleep(10);

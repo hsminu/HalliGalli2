@@ -148,6 +148,7 @@ public class SCUser extends Thread{
                 if(m[0].equals(MessageTag.START+"")){
                     GameRoom gr = new GameRoom(myRoom.scu, myRoom.title, myRoom.playercount);
                     gr.start();
+
                     Rooms.remove(myRoom);
                 }
 

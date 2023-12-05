@@ -160,9 +160,9 @@ public class GameRoom extends Thread{
                                 if (gu.hand.isEmpty()) {
                                     msg += gu.nickname + "@@";
 
-                                    iterator.remove(); // 안전하게 컬렉션을 수정
+                                    iterator.remove();
+                                    aliveUser--;
                                     deadGu.add(gu);
-                                    aliveUser = aliveGu.size();
                                 }
                             }
                             SendAllUser(msg);
@@ -182,7 +182,7 @@ public class GameRoom extends Thread{
                     }
                 }
             } catch (InterruptedException e) {
-                System.out.println("[Server] " + title + " 종료");
+                System.out.println("[Server] " + title + "Game 종료");
             }
         }
     }
@@ -245,6 +245,8 @@ public class GameRoom extends Thread{
             System.out.println();
         }
     }
+
+
 
     class GameUser extends Thread{
         HGServerMain server;
@@ -334,7 +336,7 @@ public class GameRoom extends Thread{
             } catch (IOException e){
                 System.out.println(e.toString());
             } catch (InterruptedException e){
-                ;
+                System.out.println("[Server]" + this.nickname + "Game exit");
             }
         }
     }
