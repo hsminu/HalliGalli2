@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 //*******************************************************************
@@ -153,11 +154,13 @@ public class GameRoom extends Thread{
                             order = eventPlayerorder;
 
                             msg = MessageTag.GDEAD + "//";
-                            for (GameUser gu : aliveGu) {
+                            Iterator<GameUser> iterator = aliveGu.iterator();
+                            while (iterator.hasNext()) {
+                                GameUser gu = iterator.next();
                                 if (gu.hand.isEmpty()) {
                                     msg += gu.nickname + "@@";
 
-                                    aliveGu.remove(gu);
+                                    iterator.remove(); // 안전하게 컬렉션을 수정
                                     deadGu.add(gu);
                                     aliveUser = aliveGu.size();
                                 }
@@ -317,8 +320,11 @@ public class GameRoom extends Thread{
                         if(m[0].equals(MessageTag.GEXIT + "")){
                             allGu.remove(this);
 
-                            this.scu.gamestart = false;
-                            this.scu.notify();
+                            synchronized (this.scu) {
+                                this.scu.gamestart = false;
+                                this.scu.notify();
+                            }
+
                             this.interrupt();
                         }
 

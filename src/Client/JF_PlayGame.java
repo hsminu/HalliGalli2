@@ -43,7 +43,7 @@ public class JF_PlayGame extends JFrame {
         this.client = client;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 960, 700);
+        setBounds(100, 100, 1000, 700);
 
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -110,7 +110,7 @@ public class JF_PlayGame extends JFrame {
             }
         });
         Btn_ExitRoom.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
-        Btn_ExitRoom.setBounds(763, 591, 171, 62);
+        Btn_ExitRoom.setBounds(803, 591, 171, 62);
         Btn_ExitRoom.setVisible(false);
         contentPane.add(Btn_ExitRoom);
 
@@ -281,6 +281,8 @@ public class JF_PlayGame extends JFrame {
     void ExitRoom(){
         gameControlThread.interrupt();
         client.ResetFrame();
+
+        client.jf_robby.setEnabled(true);
         client.jf_robby.setVisible(true);
     }
 

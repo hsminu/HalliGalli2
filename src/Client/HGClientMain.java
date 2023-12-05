@@ -39,6 +39,7 @@ public class HGClientMain {
     void ResetFrame(){
         jf_login.setVisible(false);
         jf_robby.setVisible(false);
+        jf_readyRoom.setVisible(false);
         jf_playGame.setVisible(false);
     }
 
