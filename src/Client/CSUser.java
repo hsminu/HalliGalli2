@@ -2,6 +2,7 @@ package Client;
 
 import Common.MessageTag;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 
@@ -27,7 +28,7 @@ public class CSUser {
     InputStream is;
     DataInputStream dis;
 
-    Thread receiveThread;  //수신 쓰레드
+    Thread receiveThread;   //수신 쓰레드
 
     CSUser(String name, String SERVER_IP, int SERVER_PORT, HGClientMain client){
         this.Name = name;
@@ -47,9 +48,25 @@ public class CSUser {
 
             dos.writeUTF(MessageTag.ACCESS +"//"+Name);
 
-            String msg = dis.readUTF();
-            if(!msg.equals(MessageTag.ACCESS+"//OKAY"))
-                throw new IOException("연결 오류");
+            //닉네임 중복 확인
+            while(true){
+                String msg = dis.readUTF();
+                if(msg.equals(MessageTag.ACCESS+"//"+MessageTag.FAIL)){
+                    String userInput = JOptionPane.showInputDialog("닉네임 중복! 다른 닉네임을 입력하세요: ");
+
+                    // 사용자가 취소를 누르거나 입력하지 않은 경우
+                    if (userInput == null || userInput.isEmpty()) {
+                        disConnect();
+                        System.exit(1);
+                    }
+
+                    this.Name = userInput;
+                    dos.writeUTF(MessageTag.ACCESS +"//"+Name);
+                }
+
+                if(msg.equals(MessageTag.ACCESS+"//"+MessageTag.OKAY))
+                    break;
+            }
 
 
             System.out.println("[Client] 서버 접속 완료 > "+socket.toString());
@@ -71,6 +88,7 @@ public class CSUser {
                     if (m[0].equals(MessageTag.VROOM + "")) {
                         String[] rooms = m[1].split("@@");
                         client.jf_robby.Model_RoomList.clear();
+
                         for (String room : rooms) {
                             client.jf_robby.Model_RoomList.addElement(room);
                         }
@@ -84,6 +102,7 @@ public class CSUser {
                             client.jf_robby.Model_PlayerList.addElement(user);
                         }
                     }
+
 
                     // 방 유저 목록 업데이트
                     if (m[0].equals(MessageTag.UROOM + "")) {
@@ -103,15 +122,15 @@ public class CSUser {
                         }
                     }
 
-                    // 게임 시작 메시지 처리
+                    // 게임 시작
                     if (m[0].equals(MessageTag.START + "")) {
                         String[] players = m[1].split("@@");
+
                         client.jf_playGame.Init(players);
                         client.jf_playGame.gameControlThread.start();
 
                         // 게임 쓰레드가 종료될 때까지 대기
                         client.jf_playGame.gameControlThread.join();
-                        System.out.println("awake");
                     }
                 }
             } catch (IOException e) {
@@ -136,6 +155,31 @@ public class CSUser {
         } catch (IOException e){
             System.out.println("[Client] 입출력 오류 > " + e.toString());
             throw e;
+        }
+    }
+
+    void disConnect() {
+        try {
+            dos.writeUTF(MessageTag.PEXIT + "");
+            // input and output streams 닫음
+            if (dos != null) {
+                dos.close();
+            }
+            if (dis != null) {
+                dis.close();
+            }
+
+            // socket 닫음
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+
+            // receiveThread 종료
+            if (receiveThread != null && receiveThread.isAlive()) {
+                receiveThread.interrupt();
+            }
+        } catch (IOException e) {
+            System.out.println("[Client] 연결 종류 오류: " + e.toString());
         }
     }
 

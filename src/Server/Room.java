@@ -12,6 +12,7 @@ import java.util.List;
 public class Room {
     List<SCUser> scu;
     String title;
+
     int maxPerson;
     int playercount = 0;
     int readycount = 1;

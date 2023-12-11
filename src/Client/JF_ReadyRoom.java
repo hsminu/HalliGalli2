@@ -19,6 +19,7 @@ public class JF_ReadyRoom extends JFrame {
 
     public JF_ReadyRoom(HGClientMain client) {
         this.client = client;
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 510, 300);
         JPanel contentPane = new JPanel();

@@ -15,25 +15,7 @@ public class HGClientMain {
         jf_playGame = new JF_PlayGame(this);
 
         ResetFrame();
-        display("JF_Login");
-    }
-
-    void display(String viewName){
-        if(viewName.equals("JF_Login")){
-            ResetFrame();
-            jf_login.setVisible(true);
-        }
-        if(viewName.equals("JF_WaitRoom")){
-            ResetFrame();
-            jf_robby.setVisible(true);
-        }
-        if(viewName.equals("JF_ReadyRoom")){
-            jf_readyRoom.setVisible(true);
-        }
-        if(viewName.equals("JF_PlayGame")){
-            ResetFrame();
-            jf_playGame.setVisible(true);
-        }
+        jf_login.setVisible(true);
     }
 
     void ResetFrame(){

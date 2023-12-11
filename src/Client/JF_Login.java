@@ -15,6 +15,7 @@ public class JF_Login extends JFrame {
 	JTextField Tf_iP;
 	JTextField Tf_port;
 
+
 	public JF_Login(HGClientMain client) {
 		this.client = client;
 		setTitle("로그인");
@@ -82,6 +83,8 @@ public class JF_Login extends JFrame {
 		contentPane.add(Btn_GameConnect);
 	}
 
+
+	//w
 	private boolean CheckInput(){
 		if (Tf_NickName.getText().length() <= 1) {
 			JOptionPane.showMessageDialog(this, "닉네임을 두 자리 이상 입력하세요.", "경고", JOptionPane.WARNING_MESSAGE);

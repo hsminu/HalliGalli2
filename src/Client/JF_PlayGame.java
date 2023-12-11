@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 public class JF_PlayGame extends JFrame {
@@ -24,7 +25,7 @@ public class JF_PlayGame extends JFrame {
     InputStream is;
     DataInputStream dis;
 
-    List<Btn_Players> btnPlayers;
+    List<JL_PlayersCard> btnPlayers;
     List<JLabel> Lb_PlayersCardCount;
 
     JButton Btn_Bell, Btn_Draw, Btn_ExitRoom;
@@ -39,7 +40,7 @@ public class JF_PlayGame extends JFrame {
     int numofPeople;
     boolean isDead = false;
 
-    public JF_PlayGame(HGClientMain client){
+    public JF_PlayGame(HGClientMain client) {
         this.client = client;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -109,6 +110,7 @@ public class JF_PlayGame extends JFrame {
                 }
             }
         });
+
         Btn_ExitRoom.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
         Btn_ExitRoom.setBounds(803, 591, 171, 62);
         Btn_ExitRoom.setVisible(false);
@@ -136,7 +138,7 @@ public class JF_PlayGame extends JFrame {
 
         int order=0;
         for(String player : players){
-            btnPlayers.add(new Btn_Players(player));
+            btnPlayers.add(new JL_PlayersCard(player));
 
             JLabel jLabel = new JLabel("");
             jLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -145,6 +147,7 @@ public class JF_PlayGame extends JFrame {
 
             if(client.csUser.Name.equals(player))
                 Myorder = order;
+
             order++;
         }
         numofPeople = order;
@@ -166,12 +169,10 @@ public class JF_PlayGame extends JFrame {
 
             btnPlayers.get((2+Myorder)%3).setBounds(135, 246, 225, 150);
             Lb_PlayersCardCount.get((2+Myorder)%3).setBounds(138, 213, 87, 33);
-
-
         }
 
-        if(numofPeople == 4){
-            btnPlayers.get(Myorder).setBounds(436, 428, 150, 225);
+        if(numofPeople == 4) {
+                btnPlayers.get(Myorder).setBounds(436, 428, 150, 225);
             Lb_PlayersCardCount.get(Myorder).setBounds(351, 620, 87, 33);
 
             btnPlayers.get((1+Myorder)%4).setBounds(643, 246, 225, 150);
@@ -184,7 +185,7 @@ public class JF_PlayGame extends JFrame {
             Lb_PlayersCardCount.get((3+Myorder)%4).setBounds(138, 213, 87, 33);
         }
 
-        for(Btn_Players btn_player: btnPlayers) {
+        for(JL_PlayersCard btn_player: btnPlayers) {
             contentPane.add(btn_player);
             btn_player.setEnabled(false);
         }
@@ -221,14 +222,14 @@ public class JF_PlayGame extends JFrame {
                         textArea.append(m[2] + "player turn\n");
                     }
 
-                    if(m[0].equals(MessageTag.FCARD+"")){
+                    if (m[0].equals(MessageTag.FCARD+"")) {
                         String[] cards = m[1].split("@@");
                         for(int i=0;i<numofPeople;i++){
                             btnPlayers.get(i).setText(cards[i]);
                         }
                     }
 
-                    if(m[0].equals(MessageTag.CCRAD+"")){
+                    if (m[0].equals(MessageTag.CCRAD+"")){
                         String[] card_cnt = m[1].split("@@");
                         for(int i=0;i<numofPeople;i++){
                             Lb_PlayersCardCount.get(i).setText(card_cnt[i]+"");
@@ -238,39 +239,48 @@ public class JF_PlayGame extends JFrame {
 
                     if(m[0].equals(MessageTag.PBELL+"")){
                         Btn_Bell.setEnabled(false);
+                        Btn_Draw.setEnabled(false);
                         textArea.append(m[1] + "push bell" + m[2]+"\n");
+
+                        textArea.append("3초 대기.. \n");
                     }
 
                     if(m[0].equals(MessageTag.DCARD+"")) {
                         textArea.append(m[1] + "draw\n");
                     }
 
+                    //죽은 플레이어가 있을 때
                     if(m[0].equals(MessageTag.GDEAD+"")) {
                         if(m.length > 1) {
                             String[] players = m[1].split("@@");
 
                             for (String player : players) {
+                                //만약 자신이면
                                 if (client.csUser.Name.equals(player)) {
                                     Btn_Draw.setEnabled(false);
                                     Btn_Bell.setEnabled(false);
                                     Btn_ExitRoom.setVisible(true);
                                 }
 
-                                for (Btn_Players btn_player : btnPlayers) {
+                                //죽은 플레이어 처리
+                                Iterator<JL_PlayersCard> iterator = btnPlayers.iterator();
+                                while (iterator.hasNext()) {
+                                    JL_PlayersCard btn_player = iterator.next();
                                     if (btn_player.nickName.equals(player)) {
                                         btn_player.setText("Dead!!");
-                                        btnPlayers.remove(btn_player);
+                                        iterator.remove(); // Use iterator to remove the current element
                                         numofPeople--;
                                     }
                                 }
                                 textArea.append(player + " dead!\n");
                             }
                         }
-
-                        textArea.append("종 울림! 3초 대기.. \n");
                     }
 
+                    //게임이 끝났을 때
                     if(m[0].equals(MessageTag.GEND+"")){
+                        Btn_Draw.setEnabled(false);
+                        Btn_Bell.setEnabled(false);
                         Btn_ExitRoom.setVisible(true);
                     }
 
@@ -285,7 +295,7 @@ public class JF_PlayGame extends JFrame {
         }
     }
 
-    void ExitRoom(){
+    void ExitRoom() {
         gameControlThread.interrupt();
         client.ResetFrame();
 
@@ -294,11 +304,18 @@ public class JF_PlayGame extends JFrame {
     }
 
 
-    private class Btn_Players extends JButton {
+    private class JL_PlayersCard extends JLabel {
         String nickName;
+        String Card;
 
-        Btn_Players(String nickName) {
+        JL_PlayersCard(String nickName) {
             this.nickName = nickName;
         }
+    }
+
+    //유저들의 컴포넌트 저장
+    private class ComponentsOfPlayers {
+        //ToDo
+        // 각 유저의 컴포넌트들을 저장하는 클래스를 만든다.
     }
 }

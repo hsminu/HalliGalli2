@@ -75,16 +75,18 @@ public class JF_Robby extends JFrame {
 		Btn_JoinRoom.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String[] s = ((String) JL_RoomList.getSelectedValue()).split(":");
-				try {
-					client.csUser.sendServer(MessageTag.EROOM + "//"+s[0]);
+				if (JL_RoomList.getSelectedValue() != null) {
+					String[] s = ((String) JL_RoomList.getSelectedValue()).split(":"); //빙 이름 가져옴
+					try {
+						client.csUser.sendServer(MessageTag.EROOM + "//" + s[0]);
 
-					client.jf_robby.setEnabled(false);
-					client.jf_readyRoom.setVisible(true);
-					client.jf_readyRoom.Init(false);
-					client.jf_readyRoom.Btn_Ready.setVisible(true);
-				} catch (IOException ex){
-					JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+						client.jf_robby.setEnabled(false);
+						client.jf_readyRoom.setVisible(true);
+						client.jf_readyRoom.Init(false);
+						client.jf_readyRoom.Btn_Ready.setVisible(true);
+					} catch (IOException ex) {
+						JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+					}
 				}
 			}
 		});

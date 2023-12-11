@@ -1,7 +1,5 @@
 package Server;
 
-import java.io.Serializable;
-
 //**
 // Name : HalliGalliCard
 // Type : Class
@@ -14,8 +12,8 @@ public class HalliGalliCard {
      */
     public enum Fruit {
         BANANA,
-        PLUM,
-        LEMON,
+        LIME,
+        GRAPE,
         STRAWBERRY;
 
         public static Fruit getByIndex(int index) {

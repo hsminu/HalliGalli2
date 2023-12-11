@@ -18,17 +18,15 @@ import java.util.List;
 //******************************************************************
 
 public class GameRoom extends Thread{
+    HalliGalliDeck deck; //처음 시작할 때 카드들
+    List<HalliGalliCard> card_underbell; //종 밑에 있는 카드
 
-    HalliGalliDeck deck;
-    List<HalliGalliCard> card_underbell;
+    List<SCGameUser> allGu;   //게임 룸에 들어와있는 모든 유저
+    List<SCGameUser> aliveGu; //
 
-    List<GameUser> allGu;
-    List<GameUser> aliveGu;
-    List<GameUser> deadGu;
-
-    String title;
-    int numofUser;
-    int aliveUser;
+    String title;   //방의 이름
+    int numofUser;  //방에 있는 모든 사람
+    int aliveUser;  //방에 있는 살아있는 사람
 
     boolean isDrawCard = false;
     boolean isPushBell = false;
@@ -41,40 +39,42 @@ public class GameRoom extends Thread{
         this.aliveUser = numofUser;
 
         allGu = Collections.synchronizedList(new ArrayList<>());
-        deadGu = Collections.synchronizedList(new ArrayList<>());
         aliveGu = Collections.synchronizedList(new ArrayList<>());
 
         for(SCUser scu : lscu) {
             scu.myGRoom = this;
             scu.gamestart = true;
 
-            allGu.add(new GameUser(scu));
+            allGu.add(new SCGameUser(scu, this));
         }
 
         Collections.shuffle(allGu);
+
         String msg = MessageTag.START+"//";
 
-        for(GameUser gu : allGu){
+        for(SCGameUser gu : allGu){
             msg += gu.nickname + "@@";
         }
+
         SendAllUser(msg);
 
         deck = new HalliGalliDeck();
         deck.initializeDeck();
         deck.shuffleDeck();
+
         card_underbell = Collections.synchronizedList(new ArrayList<>());
 
         // 각 사용자들에게 카드 나눠줌
         if(numofUser == 2){
-            for(GameUser gu : allGu){
-                for(int i=0;i<28;i++){
+            for(SCGameUser gu : allGu){
+                for(int i=0;i<10;i++){
                     gu.hand.add(deck.drawCard());
                 }
             }
         }
 
         if(numofUser == 3){
-            for(GameUser gu : allGu){
+            for(SCGameUser gu : allGu){
                 for(int i=0;i<18;i++){
                     gu.hand.add(deck.drawCard());
                 }
@@ -85,14 +85,15 @@ public class GameRoom extends Thread{
         }
 
         if(numofUser == 4){
-            for(GameUser gu : allGu){
+            for(SCGameUser gu : allGu){
                 for(int i=0;i<14;i++){
                     gu.hand.add(deck.drawCard());
                 }
             }
         }
 
-        for(GameUser gu : allGu) {
+        //모든 게임유저에 대해 쓰레드를 시작
+        for(SCGameUser gu : allGu) {
             aliveGu.add(gu);
 
             gu.start();
@@ -112,10 +113,10 @@ public class GameRoom extends Thread{
                     SendAllUser(msg);
 
                     SendAllUser(FloorCards());
+
                     SendAllUser(RemainCards());
 
                     while (true) {
-
                         this.sleep(10);
 
                         if (isDrawCard) {
@@ -137,7 +138,7 @@ public class GameRoom extends Thread{
 
                             if (isSuccessBell()) {
                                 msg += MessageTag.SBELL + "";
-                                for (GameUser gu : aliveGu) {
+                                for (SCGameUser gu : aliveGu) {
                                     while (!gu.floor.isEmpty())
                                         aliveGu.get(eventPlayerorder).hand.add(gu.floor.remove(0));
                                 }
@@ -153,19 +154,24 @@ public class GameRoom extends Thread{
                             SendAllUser(msg);
                             order = eventPlayerorder;
 
+                            //종이 울린 후 죽은 플레이어가 있는지 확인
                             msg = MessageTag.GDEAD + "//";
-                            Iterator<GameUser> iterator = aliveGu.iterator();
+                            Iterator<SCGameUser> iterator = aliveGu.iterator();
                             while (iterator.hasNext()) {
-                                GameUser gu = iterator.next();
+                                SCGameUser gu = iterator.next();
                                 if (gu.hand.isEmpty()) {
                                     msg += gu.nickname + "@@";
 
                                     iterator.remove();
                                     aliveUser--;
-                                    deadGu.add(gu);
                                 }
                             }
-                            SendAllUser(msg);
+                            //죽은 플레이어가 있을 때 메시지를 보냄
+                            if(msg.split("//").length >= 2)
+                                SendAllUser(msg);
+
+                            SendAllUser(FloorCards());
+                            SendAllUser(RemainCards());
 
                             Thread.sleep(3000);
 
@@ -189,7 +195,7 @@ public class GameRoom extends Thread{
 
     String FloorCards(){
         String msg = MessageTag.FCARD + "//";
-        for(GameUser gu : allGu){
+        for(SCGameUser gu : allGu){
             if(gu.GetTopofFloor() == null)
                 msg+="null@@";
             else
@@ -200,7 +206,7 @@ public class GameRoom extends Thread{
 
     String RemainCards(){
         String msg = MessageTag.CCRAD + "//";
-        for(GameUser gu : allGu){
+        for(SCGameUser gu : allGu){
             msg+=gu.hand.size()+"@@";
         }
         msg+=card_underbell.size();
@@ -211,7 +217,7 @@ public class GameRoom extends Thread{
     boolean isSuccessBell(){
         int[] countCard = new int[4];
 
-        for (GameUser gu : allGu) {
+        for (SCGameUser gu : allGu) {
             if (!gu.floor.isEmpty()) {
                 HalliGalliCard hc = gu.floor.get(gu.floor.size() - 1);
                 countCard[hc.getFruit().ordinal()] += hc.getNumber();
@@ -228,7 +234,7 @@ public class GameRoom extends Thread{
 
     void SendAllUser(String msg){
         try {
-            for (GameUser gameUser : allGu) {
+            for (SCGameUser gameUser : allGu) {
                 gameUser.dos.writeUTF(msg);
             }
         } catch (IOException e){
@@ -238,106 +244,11 @@ public class GameRoom extends Thread{
 
     void SendAliveUser(String msg){
         try {
-            for (GameUser gameUser : aliveGu) {
+            for (SCGameUser gameUser : aliveGu) {
                 gameUser.dos.writeUTF(msg);
             }
         } catch (IOException e){
             System.out.println();
-        }
-    }
-
-
-
-    class GameUser extends Thread{
-        HGServerMain server;
-        Socket socket;
-
-        SCUser scu;
-
-        OutputStream os;
-        DataOutputStream dos;
-        InputStream is;
-        DataInputStream dis;
-
-        String msg;            //수신 메시지를 저장할 필드
-        String nickname;       //클라이언트의 닉네임을 저장할 필드
-
-        List<HalliGalliCard> hand;
-        List<HalliGalliCard> floor;
-
-        GameUser(SCUser scu){
-            this.scu = scu;
-            this.socket = scu.socket;
-            this.server = scu.server;
-            this.nickname = scu.nickname;
-
-            super.setName(this.nickname + "Thread");
-
-            hand = Collections.synchronizedList(new ArrayList<>());
-            floor = Collections.synchronizedList(new ArrayList<>());
-
-            try{
-                os = this.socket.getOutputStream();
-                dos = new DataOutputStream(os);
-                is = this.socket.getInputStream();
-                dis = new DataInputStream(is);
-            } catch (IOException e){
-                System.out.println(e.toString());
-            }
-        }
-
-        public String GetTopofFloor(){
-            if(!floor.isEmpty())
-                return floor.get(floor.size()-1).toString();
-            else
-                return null;
-        }
-
-        public boolean drawHandCard() {
-            if(!hand.isEmpty()){
-                floor.add(hand.remove(0));
-                return true;
-            }
-            else return false;
-        }
-
-        @Override
-        public void run() {
-            try {
-                synchronized (this) {
-                    while (true) {
-                        msg = dis.readUTF();
-                        String[] m = msg.split("//");
-
-                        if (m[0].equals(MessageTag.PBELL + "")) {
-                            isPushBell = true;
-                            eventPlayerorder = Integer.parseInt(m[1]);
-                        }
-
-                        if (m[0].equals(MessageTag.DCARD + "")) {
-                            isDrawCard = true;
-                            eventPlayerorder = Integer.parseInt(m[1]);
-                        }
-
-                        if(m[0].equals(MessageTag.GEXIT + "")){
-                            allGu.remove(this);
-
-                            synchronized (this.scu) {
-                                this.scu.gamestart = false;
-                                this.scu.notify();
-                            }
-
-                            this.interrupt();
-                        }
-
-                        this.sleep(10);
-                    }
-                }
-            } catch (IOException e){
-                System.out.println(e.toString());
-            } catch (InterruptedException e){
-                System.out.println("[Server]" + this.nickname + "Game exit");
-            }
         }
     }
 }

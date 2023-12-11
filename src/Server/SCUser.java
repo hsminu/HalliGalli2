@@ -56,7 +56,7 @@ public class SCUser extends Thread{
     //                요청 정보를 Tag단위로 파싱하여 각 요청에 대한 기능을 구현
     //*******************************************************************
     @Override
-    public void run(){
+    public void run() {
         try{
             System.out.println("[Server] 클라이언트 접속 > " + this.socket.toString());
 
@@ -70,15 +70,28 @@ public class SCUser extends Thread{
 
                 String[] m = msg.split("//"); //읽은 데이터를 '//'로 파싱
 
-
                 //유저 접속 요청
                 if(m[0].equals(MessageTag.ACCESS+"")){
+                    //중복된 이름 확인
+                    boolean isOver = false;
+                    for(SCUser scu : allUsers){
+                        if(scu.nickname.equals(m[1])){
+                            dos.writeUTF(MessageTag.ACCESS + "//"+MessageTag.FAIL);
+                            isOver = true;
+                            break;
+                        }
+                    }
+                    if(isOver)
+                        continue;
+
                     nickname = m[1];
 
-                    allUsers.add(this);
-                    waitUsers.add(this);
+                    synchronized (this) {
+                        allUsers.add(this);
+                        waitUsers.add(this);
+                    }
 
-                    dos.writeUTF(MessageTag.ACCESS + "//OKAY"); //처리 완료 후 OKAY메시지 전송
+                    dos.writeUTF(MessageTag.ACCESS + "//"+MessageTag.OKAY); //처리 완료 후 OKAY메시지 전송
 
                     sendWait(connectedUser()); //새 유저가 들어왔으므로 모든 유저에게 유저 목록 전송
                     if(Rooms.size() > 0){
@@ -89,13 +102,15 @@ public class SCUser extends Thread{
                 //방 생성 요청
                 if(m[0].equals(MessageTag.CROOM+"")){
                     myRoom = new Room(m[1], m[2]); //방 이름, 최대 인원
-                    myRoom.playercount++;
+                    myRoom.playercount++; //
 
-                    Rooms.add(myRoom);
-                    userstate = 2; //방장
+                    synchronized (this) {
+                        Rooms.add(myRoom);
+                        userstate = 2; //방장
 
-                    myRoom.scu.add(this);
-                    waitUsers.remove(this);  //대기 유저에서 삭제
+                        myRoom.scu.add(this);
+                        waitUsers.remove(this);  //대기 유저에서 삭제
+                    }
 
                     dos.writeUTF(MessageTag.CROOM+"//OKAY");
                     System.out.println("[Server] "+nickname + " : 방 '" + m[1] + "' 생성");
@@ -105,26 +120,29 @@ public class SCUser extends Thread{
                 }
 
                 //방 접속 요청
-                if(m[0].equals(MessageTag.EROOM+"")){
-                    for(Room room : Rooms){
-                        //방 이름이 같을 때
-                        if(room.title.equals(m[1])){
-                            if(room.playercount < room.maxPerson){
-                                myRoom = room;
-                                myRoom.playercount++;
+                if(m[0].equals(MessageTag.EROOM+"")){ //m[1]
+                    synchronized (this) {
 
-                                waitUsers.remove(this);
-                                myRoom.scu.add(this);
+                        for (Room room : Rooms) {
+                            //방 이름이 같을 때
+                            if (room.title.equals(m[1])) {
 
-                                sendWait(roomInfo());
-                                sendRoom(roomUser());
+                                if (room.playercount < room.maxPerson) {
+                                    myRoom = room;
+                                    myRoom.playercount++;
 
-                                dos.writeUTF(MessageTag.EROOM+"//"+MessageTag.OKAY);
+                                    waitUsers.remove(this);
+                                    myRoom.scu.add(this);
+
+                                    sendWait(roomInfo());
+                                    sendRoom(roomUser());
+
+                                    dos.writeUTF(MessageTag.EROOM + "//" + MessageTag.OKAY);
                                     System.out.println("[Server] " + nickname + " : 방 '" + m[1] + "' 입장");
-                            }
-                            else {
-                                dos.writeUTF(MessageTag.EROOM+"//"+MessageTag.FAIL+"::Over Person");
-                                System.out.println("[Server] " + nickname +":인원 초과. 입장 불가능");
+                                } else {
+                                    dos.writeUTF(MessageTag.EROOM + "//" + MessageTag.FAIL + "::Over Person");
+                                    System.out.println("[Server] " + nickname + ":인원 초과. 입장 불가능");
+                                }
                             }
 
                             break;
@@ -132,15 +150,21 @@ public class SCUser extends Thread{
                     }
                 }
 
+                //방을 나갔을 때
+                if(m[0].equals(MessageTag.REXIT+"")){
+                    /*
+                    Todo: 사용자가 대기방을 나갔을 때 처리
+                     */
+                }
+
 
                 //레디 요청
                 if(m[0].equals(MessageTag.READY+"")){
+                    //userstate 0: not ready, 1: ready
                     this.userstate = this.userstate == 0 ? 1 : 0;
+
                     myRoom.readycount += this.userstate == 0 ? -1 : 1;
 
-                    if(myRoom.scu.size() != 1 && myRoom.readycount == myRoom.scu.size()){
-
-                    }
                     sendRoom(roomUser());
                 }
 
@@ -152,22 +176,39 @@ public class SCUser extends Thread{
                     Rooms.remove(myRoom);
                 }
 
+                //종료
+                if(m[0].equals(MessageTag.PEXIT+"")){
+                    disConnect();
+                }
 
 
+
+                //게임 시작일 때
                 if(gamestart) {
+                    //이 쓰레드를 대기시킴
                     synchronized (this){
                         this.wait();
                     }
 
+                    //게임이 끝난 후 대기실 정보를 보냄
                     myRoom = null;
                     waitUsers.add(this);
+
+                    sendWait(connectedUser());
+                    sendWait(roomInfo());
                 }
 
             }
         } catch (IOException e){
             System.out.println("[Server] 입출력 오류 > " + e.toString());
+
+            //사용자 강제종료
+            if(e.toString().equals("Connection reset")){
+                disConnect();
+            }
+
         } catch (InterruptedException e){
-            System.out.println(e.toString());
+            System.out.println("[Server] Thread" + this.nickname + " 중지 > " + e.toString());;
         }
     }
 
@@ -182,12 +223,13 @@ public class SCUser extends Thread{
         return msg;
     }
 
-    /* 클라이언트가 입장한 방의 인원을 조회하는 메소드 */
+    /* 클라이언트가 입장한 방의 인원과 정보를 조회하는 메소드 */
     String roomUser() {
         String msg = MessageTag.UROOM + "//";
 
         for(int i=0; i<myRoom.scu.size(); i++) {
             msg += myRoom.scu.get(i).nickname;
+
             if(myRoom.scu.get(i).userstate == 0)
                 msg += " : not ready";
             if(myRoom.scu.get(i).userstate == 1)
@@ -199,6 +241,7 @@ public class SCUser extends Thread{
         }
 
         msg+="//";
+
         if(myRoom.scu.size() != 1 && myRoom.readycount == myRoom.scu.size())
             msg+=MessageTag.OKAY;
         else
@@ -239,5 +282,34 @@ public class SCUser extends Thread{
         }
     }
 
+    //클라이언트와의 연결 종료
+    void disConnect(){
+        try {
+            //객체 삭제
+            allUsers.remove(this);
+            if(waitUsers.contains(this))
+                waitUsers.remove(this);
+
+            sendWait(connectedUser());
+
+            // input and output streams 닫음
+            if (dos != null) {
+                dos.close();
+            }
+            if (dis != null) {
+                dis.close();
+            }
+
+            // socket 닫음
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+
+            if(super.isAlive())
+                super.interrupt();
+        } catch (IOException e) {
+            System.out.println("[Client] 연결 종류 오류: " + e.toString());
+        }
+    }
 
 }
