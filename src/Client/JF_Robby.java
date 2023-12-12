@@ -79,11 +79,6 @@ public class JF_Robby extends JFrame {
 					String[] s = ((String) JL_RoomList.getSelectedValue()).split(":"); //빙 이름 가져옴
 					try {
 						client.csUser.sendServer(MessageTag.EROOM + "//" + s[0]);
-
-						client.jf_robby.setEnabled(false);
-						client.jf_readyRoom.setVisible(true);
-						client.jf_readyRoom.Init(false);
-						client.jf_readyRoom.Btn_Ready.setVisible(true);
 					} catch (IOException ex) {
 						JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
 					}
@@ -92,10 +87,18 @@ public class JF_Robby extends JFrame {
 		});
 		contentPane.add(Btn_JoinRoom);
 
-		JButton btnNewButton_2 = new JButton("게임 종료하기");
-		btnNewButton_2.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
-		btnNewButton_2.setBounds(472, 503, 319, 56);
-		contentPane.add(btnNewButton_2);
+		JButton Btn_ExitGame = new JButton("게임 종료하기");
+		Btn_ExitGame.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
+		Btn_ExitGame.setBounds(472, 503, 319, 56);
+		Btn_ExitGame.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("[Client] 연결 종료.");
+				client.csUser.disConnect();
+				System.exit(1);
+			}
+		});
+		contentPane.add(Btn_ExitGame);
 
 		JLabel lblNewLabel = new JLabel("====================== 방 목록 =========================");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -110,6 +113,8 @@ public class JF_Robby extends JFrame {
 		contentPane.add(lblNewLabel_1);
 	}
 
+
+	//방 이름과 최대 인원을 입력 받는 다이어로그.
 	class CreateRoomDialog extends JDialog {
 		private JTextField roomNameField;
 		private JTextField numOfPeopleField;
@@ -127,26 +132,22 @@ public class JF_Robby extends JFrame {
 
 			panel.add(new JLabel("방 이름:"));
 			panel.add(roomNameField);
-			panel.add(new JLabel("최대 플레이어 수:"));
+			panel.add(new JLabel("최대 플레이어 수(2~4):"));
 			panel.add(numOfPeopleField);
 
 			JButton createButton = new JButton("방 생성");
 			createButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					String roomName = roomNameField.getText();
-					String numOfPeopleStr = numOfPeopleField.getText();
-
-					try {
-						client.csUser.sendServer(MessageTag.CROOM +"//"+roomName+"//"+numOfPeopleStr);
-						dispose();
-
-						client.jf_robby.setEnabled(false);
-						client.jf_readyRoom.setVisible(true);
-						client.jf_readyRoom.Init(true);
-						client.jf_readyRoom.Btn_GameStart.setVisible(true);
-					} catch (IOException ex) {
-						JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+					if (CheckInput()) {
+						String roomName = roomNameField.getText();
+						String numOfPeopleStr = numOfPeopleField.getText();
+						try {
+							client.csUser.sendServer(MessageTag.CROOM + "//" + roomName + "//" + numOfPeopleStr);
+							dispose();
+						} catch (IOException ex) {
+							JOptionPane.showMessageDialog(client.jf_robby, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+						}
 					}
 				}
 			});
@@ -163,6 +164,23 @@ public class JF_Robby extends JFrame {
 			panel.add(cancelButton);
 
 			add(panel);
+
+
+		}
+
+		//입력 검사, 잘못된 입력이면 경고 다이어로그를 띄움.
+		boolean CheckInput() {
+			if(roomNameField.getText().length() < 2){
+				JOptionPane.showMessageDialog(this, "방 이름을 두 자리 이상 입력하세요.", "경고", JOptionPane.WARNING_MESSAGE);
+				return false;
+			}
+			String numRegex = "^[2-4]$";
+			if(numOfPeopleField.getText().matches(numRegex) != true){
+				JOptionPane.showMessageDialog(this, "방 최대인원을 2에서 4로 입력하세요.", "경고", JOptionPane.WARNING_MESSAGE);
+				return false;
+			}
+
+			return true;
 		}
 	}
 }

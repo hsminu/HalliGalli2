@@ -37,6 +37,18 @@ public class JF_ReadyRoom extends JFrame {
         JButton Btn_ExitRoom = new JButton("방 나가기");
         Btn_ExitRoom.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
         Btn_ExitRoom.setBounds(44, 190, 171, 62);
+        Btn_ExitRoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    client.csUser.sendServer(MessageTag.REXIT+"");
+                    dispose();
+                    client.jf_robby.setEnabled(true);
+                } catch (IOException ex){
+                    JOptionPane.showMessageDialog(client.jf_readyRoom, "통신 오류", "경고", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
         contentPane.add(Btn_ExitRoom);
 
         Btn_Ready = new JButton("레디");
@@ -77,6 +89,10 @@ public class JF_ReadyRoom extends JFrame {
         this.isHead = isHead;
         if(isHead) {
             Btn_Ready.setVisible(false);
+            Btn_GameStart.setVisible(true);
+        }
+        else{
+            Btn_Ready.setVisible(true);
             Btn_GameStart.setVisible(false);
         }
     }

@@ -39,6 +39,6 @@ public class HalliGalliCard {
 
     @Override
     public String toString() {
-        return fruit + "\\" + number;
+        return fruit + "#" + number;
     }
 }

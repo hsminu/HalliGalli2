@@ -8,7 +8,6 @@ import java.util.List;
 // Name : HalliGalliDeck
 // Type : Class
 // Description : 할리갈리 게임에 필요한 카드 덱을 나타내는 클래스
-
 //******************************************************************
 
 public class HalliGalliDeck {

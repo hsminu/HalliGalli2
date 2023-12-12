@@ -66,7 +66,7 @@ public class SCUser extends Thread{
             dis = new DataInputStream(is);
 
             while(true) {
-                msg = dis.readUTF();
+                msg = dis.readUTF(); //메시지를 수신함
 
                 String[] m = msg.split("//"); //읽은 데이터를 '//'로 파싱
 
@@ -101,22 +101,36 @@ public class SCUser extends Thread{
 
                 //방 생성 요청
                 if(m[0].equals(MessageTag.CROOM+"")){
-                    myRoom = new Room(m[1], m[2]); //방 이름, 최대 인원
-                    myRoom.playercount++; //
-
+                    boolean isOver = false;
                     synchronized (this) {
-                        Rooms.add(myRoom);
-                        userstate = 2; //방장
-
-                        myRoom.scu.add(this);
-                        waitUsers.remove(this);  //대기 유저에서 삭제
+                        for (Room room : Rooms) {
+                            if (room.title.equals(m[1])) {
+                                dos.writeUTF(MessageTag.CROOM + "//" + MessageTag.FAIL);
+                                isOver = true;
+                                break;
+                            }
+                        }
                     }
 
-                    dos.writeUTF(MessageTag.CROOM+"//OKAY");
-                    System.out.println("[Server] "+nickname + " : 방 '" + m[1] + "' 생성");
+                    if(!isOver) {
 
-                    sendWait(roomInfo());
-                    sendRoom(roomUser());
+                        myRoom = new Room(m[1], m[2]); //방 이름, 최대 인원
+                        myRoom.playercount++; //
+
+                        synchronized (this) {
+                            Rooms.add(myRoom);
+                            userstate = 2; //방장
+
+                            myRoom.scu.add(this);
+                            waitUsers.remove(this);  //대기 유저에서 삭제
+                        }
+
+                        dos.writeUTF(MessageTag.CROOM + "//"+MessageTag.OKAY);
+                        System.out.println("[Server] " + nickname + " : 방 '" + m[1] + "' 생성");
+
+                        sendWait(roomInfo());
+                        sendRoom(roomUser());
+                    }
                 }
 
                 //방 접속 요청
@@ -140,7 +154,7 @@ public class SCUser extends Thread{
                                     dos.writeUTF(MessageTag.EROOM + "//" + MessageTag.OKAY);
                                     System.out.println("[Server] " + nickname + " : 방 '" + m[1] + "' 입장");
                                 } else {
-                                    dos.writeUTF(MessageTag.EROOM + "//" + MessageTag.FAIL + "::Over Person");
+                                    dos.writeUTF(MessageTag.EROOM + "//" + MessageTag.FAIL);
                                     System.out.println("[Server] " + nickname + ":인원 초과. 입장 불가능");
                                 }
                             }
@@ -151,10 +165,32 @@ public class SCUser extends Thread{
                 }
 
                 //방을 나갔을 때
-                if(m[0].equals(MessageTag.REXIT+"")){
+                if(m[0].equals(MessageTag.REXIT+"")) {
                     /*
                     Todo: 사용자가 대기방을 나갔을 때 처리
                      */
+
+                    synchronized (this) {
+                        for (Room room : Rooms) {
+                            if (room.title.equals(myRoom.title)) {
+                                myRoom.playercount--;
+                                if (userstate == 1)
+                                    myRoom.readycount--;
+                                myRoom.scu.remove(this);
+
+                                if (myRoom.playercount == 0) {
+                                    Rooms.remove(myRoom);
+                                } else {
+                                    sendRoom(roomUser());
+                                }
+
+                                userstate = 0;
+                                myRoom = null;
+                                waitUsers.add(this);
+                                sendWait(roomInfo());
+                            }
+                        }
+                    }
                 }
 
 
@@ -170,7 +206,7 @@ public class SCUser extends Thread{
 
                 //게임 시작 요청
                 if(m[0].equals(MessageTag.START+"")){
-                    GameRoom gr = new GameRoom(myRoom.scu, myRoom.title, myRoom.playercount);
+                    GameRoom gr = new GameRoom(server, myRoom);
                     gr.start();
 
                     Rooms.remove(myRoom);
@@ -180,8 +216,6 @@ public class SCUser extends Thread{
                 if(m[0].equals(MessageTag.PEXIT+"")){
                     disConnect();
                 }
-
-
 
                 //게임 시작일 때
                 if(gamestart) {

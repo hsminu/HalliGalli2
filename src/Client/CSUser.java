@@ -78,19 +78,22 @@ public class CSUser {
             throw e;
         }
 
+        //메시지 수신 쓰레드
         receiveThread = new Thread(() -> {
             try {
                 while (true) {
-                    String msg = dis.readUTF();
+                    String msg = dis.readUTF(); //메시지 수신
                     String[] m = msg.split("//");
 
                     // 방 목록 업데이트
                     if (m[0].equals(MessageTag.VROOM + "")) {
-                        String[] rooms = m[1].split("@@");
-                        client.jf_robby.Model_RoomList.clear();
+                        if(m.length > 1) {
+                            String[] rooms = m[1].split("@@");
+                            client.jf_robby.Model_RoomList.clear();
 
-                        for (String room : rooms) {
-                            client.jf_robby.Model_RoomList.addElement(room);
+                            for (String room : rooms) {
+                                client.jf_robby.Model_RoomList.addElement(room);
+                            }
                         }
                     }
 
@@ -119,6 +122,27 @@ public class CSUser {
                                 client.jf_readyRoom.Btn_GameStart.setEnabled(true);
                             else if (m[2].equals(MessageTag.FAIL + ""))
                                 client.jf_readyRoom.Btn_GameStart.setEnabled(false);
+                        }
+                    }
+
+                    if(m[0].equals(MessageTag.CROOM+"")){
+                        if(m[1].equals(MessageTag.OKAY+"")){
+                            client.jf_robby.setEnabled(false);
+                            client.jf_readyRoom.setVisible(true);
+                            client.jf_readyRoom.Init(true);
+                        } else if(m[1].equals(MessageTag.FAIL+"")){
+                            JOptionPane.showMessageDialog(client.jf_robby, "방 중복 확인", "경고", JOptionPane.WARNING_MESSAGE);
+                        }
+                    }
+
+                    //방 입장 성공 여부
+                    if(m[0].equals(MessageTag.EROOM+"")){
+                        if(m[1].equals(MessageTag.OKAY+"")){
+                            client.jf_robby.setEnabled(false);
+                            client.jf_readyRoom.setVisible(true);
+                            client.jf_readyRoom.Init(false);
+                        } else{
+                            JOptionPane.showMessageDialog(client.jf_robby, "방 인원 초과", "경고", JOptionPane.WARNING_MESSAGE);
                         }
                     }
 

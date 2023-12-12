@@ -3,8 +3,9 @@ package Common;
 public enum MessageTag {
     OKAY,
     FAIL,
+
+
     ACCESS, //접속
-    OVER,   //중복 체크
     CROOM,  //방 생성
     VROOM,  //방 목록
     UROOM,  //방 인원
