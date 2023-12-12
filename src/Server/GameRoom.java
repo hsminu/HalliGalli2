@@ -67,7 +67,7 @@ public class GameRoom extends Thread{
         // 각 사용자들에게 카드 나눠줌
         if(numofUser == 2){
             for(SCGameUser gu : allGu){
-                for(int i=0;i<10;i++){
+                for(int i=0;i<28;i++){
                     gu.hand.add(deck.drawCard());
                 }
             }

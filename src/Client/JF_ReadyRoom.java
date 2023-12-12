@@ -73,7 +73,7 @@ public class JF_ReadyRoom extends JFrame {
         contentPane.add(Btn_GameStart);
     }
 
-    void Init(boolean isHead){
+    void Init(boolean isHead) {
         this.isHead = isHead;
         if(isHead) {
             Btn_Ready.setVisible(false);

@@ -14,6 +14,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+//*******************************************************************
+// Name : JF_PlayGame
+// Type : Class
+// Description : 할리갈리 게임 프레임
+//               서버에서 메시지를 수신해 처리
+//*******************************************************************
+
 public class JF_PlayGame extends JFrame {
     HGClientMain client;
     Socket socket;
@@ -64,6 +71,7 @@ public class JF_PlayGame extends JFrame {
                 }
             }
         });
+
         Btn_Bell.setBounds(460, 271, 100, 100);
         Btn_Bell.setEnabled(true);
         contentPane.add(Btn_Bell);
@@ -189,6 +197,7 @@ public class JF_PlayGame extends JFrame {
             contentPane.add(btn_player);
             btn_player.setEnabled(false);
         }
+
         for(JLabel jLabel : Lb_PlayersCardCount)
             contentPane.add(jLabel);
 
