@@ -153,7 +153,7 @@ public class JF_PlayGame extends JFrame {
                     }
 
                     if(m[0].equals(MessageTag.DCARD+"")) {
-                        textArea.append(m[1] + "draw\n");
+                        //textArea.append(m[1] + "draw\n");
                     }
 
                     //죽은 플레이어가 있을 때
@@ -187,6 +187,7 @@ public class JF_PlayGame extends JFrame {
 
                     //게임이 끝났을 때
                     if(m[0].equals(MessageTag.GEND+"")){
+                        textArea.append("게임 종료!! \n");
                         Btn_Draw.setEnabled(false);
                         Btn_Bell.setEnabled(false);
                         Btn_ExitRoom.setVisible(true);
@@ -452,11 +453,11 @@ public class JF_PlayGame extends JFrame {
             else {
                 String[] m = card.split("#");
                 if (isRotated) {
-                    ImageIcon FruitImageIcon = new ImageIcon("img/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#ROW.jpg");
+                    ImageIcon FruitImageIcon = new ImageIcon("img/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#ROW.png");
                     Image FruitImage = FruitImageIcon.getImage().getScaledInstance(225, 150, Image.SCALE_SMOOTH);
                     Lb_playerCard.setIcon(new ImageIcon(FruitImage));
                 } else {
-                    ImageIcon FruitImageIcon = new ImageIcon("img/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#COLUMN.jpg");
+                    ImageIcon FruitImageIcon = new ImageIcon("img/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#COLUMN.png");
                     Image FruitImage = FruitImageIcon.getImage().getScaledInstance(150, 225, Image.SCALE_SMOOTH);
                     Lb_playerCard.setIcon(new ImageIcon(FruitImage));
                 }
