@@ -10,9 +10,9 @@ import java.net.Socket;
 // Name : CSUser
 // Type : Class
 // Description : 서버와의 소켓 통신을 담당하는 클래스.
-//               로그인 후 사용자 정보를 담고있음.
+//               로그인 후 소켓, 이름 등 사용자 정보를 담고있음.
 //               게임 시작 전 통신을 담당.
-//               Tag 단위로 들어오는 메시지를 처리.
+//               쓰레드로 Tag 단위로 들어오는 메시지를 처리.
 //*******************************************************************
 
 public class CSUser {
@@ -29,6 +29,7 @@ public class CSUser {
     DataInputStream dis;
 
     Thread receiveThread;   //수신 쓰레드
+
 
     CSUser(String name, String SERVER_IP, int SERVER_PORT, HGClientMain client){
         this.Name = name;
@@ -51,6 +52,7 @@ public class CSUser {
             //닉네임 중복 확인
             while(true){
                 String msg = dis.readUTF();
+
                 if(msg.equals(MessageTag.ACCESS+"//"+MessageTag.FAIL)){
                     String userInput = JOptionPane.showInputDialog("닉네임 중복! 다른 닉네임을 입력하세요: ");
 
@@ -160,7 +162,7 @@ public class CSUser {
             } catch (IOException e) {
                 System.out.println("[Client] 입출력 오류 > " + e.toString());
             } catch (InterruptedException e) {
-                System.out.println(e.toString());
+                ;
             }
         });
         receiveThread.start();
@@ -182,6 +184,7 @@ public class CSUser {
         }
     }
 
+    //서버와의 연결 종료
     void disConnect() {
         try {
             dos.writeUTF(MessageTag.PEXIT + "");
@@ -202,6 +205,7 @@ public class CSUser {
             if (receiveThread != null && receiveThread.isAlive()) {
                 receiveThread.interrupt();
             }
+
         } catch (IOException e) {
             System.out.println("[Client] 연결 종류 오류: " + e.toString());
         }

@@ -38,7 +38,7 @@ public class SCGameUser extends Thread{
         hand = Collections.synchronizedList(new ArrayList<>());
         floor = Collections.synchronizedList(new ArrayList<>());
 
-        try{
+        try {
             os = this.socket.getOutputStream();
             dos = new DataOutputStream(os);
             is = this.socket.getInputStream();

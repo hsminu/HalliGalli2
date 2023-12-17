@@ -14,7 +14,6 @@ public enum MessageTag {
     READY,  //레디
     START,
     CREDY,  //레디 체
-    ORDER,
     PEXIT,
     REXIT,
 

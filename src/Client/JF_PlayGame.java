@@ -355,7 +355,7 @@ public class JF_PlayGame extends JFrame {
             }
         }
 
-        //플레이어 정보 컴포넌트 위치 설정
+        //인원마다 플레이어 정보 컴포넌트 위치 설정
         if(numofPeople == 2) {
             Cmp_Players.get(Myorder).Lb_playerCard.setBounds(575, 458, 150, 225);
             Cmp_Players.get(Myorder).Lb_remainCard.setBounds(396, 635, 167, 48);

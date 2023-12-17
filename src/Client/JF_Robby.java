@@ -24,6 +24,8 @@ public class JF_Robby extends JFrame {
 	JList JL_RoomList, JL_PlayerList;
 	DefaultListModel Model_RoomList, Model_PlayerList;
 
+	JButton Btn_CreateRoom, Btn_JoinRoom, Btn_ExitGame;
+
 	CreateRoomDialog createRoomDialog;
 
 	public JF_Robby(HGClientMain client) {
@@ -59,7 +61,7 @@ public class JF_Robby extends JFrame {
 		SP_PlayerList.setBounds(472, 40, 319, 311);
 		contentPane.add(SP_PlayerList);
 
-		JButton Btn_CreateRoom = new JButton("방 생성하기");
+		Btn_CreateRoom = new JButton("방 생성하기");
 		Btn_CreateRoom.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
 		Btn_CreateRoom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -69,7 +71,7 @@ public class JF_Robby extends JFrame {
 		Btn_CreateRoom.setBounds(472, 371, 319, 56);
 		contentPane.add(Btn_CreateRoom);
 
-		JButton Btn_JoinRoom = new JButton("방 입장하기");
+		Btn_JoinRoom = new JButton("방 입장하기");
 		Btn_JoinRoom.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
 		Btn_JoinRoom.setBounds(472, 437, 319, 56);
 		Btn_JoinRoom.addActionListener(new ActionListener() {
@@ -87,7 +89,7 @@ public class JF_Robby extends JFrame {
 		});
 		contentPane.add(Btn_JoinRoom);
 
-		JButton Btn_ExitGame = new JButton("게임 종료하기");
+		Btn_ExitGame = new JButton("게임 종료하기");
 		Btn_ExitGame.setFont(new Font("한컴 고딕", Font.PLAIN, 20));
 		Btn_ExitGame.setBounds(472, 503, 319, 56);
 		Btn_ExitGame.addActionListener(new ActionListener() {
