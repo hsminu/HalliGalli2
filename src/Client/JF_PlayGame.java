@@ -23,14 +23,11 @@ import java.util.List;
 
 public class JF_PlayGame extends JFrame {
     HGClientMain client;
-    Socket socket;
 
     JPanel contentPane;
     ImageIcon backgroundImageIcon;
 
-    OutputStream os;
     DataOutputStream dos;
-    InputStream is;
     DataInputStream dis;
 
     List<ComponentsOfPlayer> Cmp_Players;
@@ -60,15 +57,8 @@ public class JF_PlayGame extends JFrame {
     void Init(String[] players){
         setTitle(client.csUser.Name);
 
-        this.socket = client.csUser.socket;
-        try {
-            os = socket.getOutputStream();
-            dos = new DataOutputStream(os);
-            is = socket.getInputStream();
-            dis = new DataInputStream(is);
-        } catch (IOException e){
-            System.out.println(e.toString());
-        }
+        dos = client.csUser.dos;
+        dis = client.csUser.dis;
 
         int order = 0;
         Cmp_Players = new ArrayList<>();
@@ -143,9 +133,7 @@ public class JF_PlayGame extends JFrame {
 
                         if(m[2].equals(MessageTag.SBELL+"")){
                             textArea.append(m[1]+" 플레이어 종 누르기 성공 \n");
-
-                        }
-                        else{
+                        } else{
                             textArea.append(m[1]+" 플레이어 종 누르기 실패 \n");
                         }
 
@@ -215,7 +203,7 @@ public class JF_PlayGame extends JFrame {
     //게임마다 이미
     void InitGui() {
         //배경 이미지를 플레이어 수에 따라 설정
-        backgroundImageIcon = new ImageIcon("img/backgroundimg/background2.jpg");
+        backgroundImageIcon = new ImageIcon("img/PlayGame/backgroundimg/background" + numofPeople + ".jpg");
         contentPane = new JPanel() {
             @Override
             public void paintComponent(Graphics g){
@@ -242,7 +230,7 @@ public class JF_PlayGame extends JFrame {
 
 
         //종 버튼, 종 밑 카드 카운트
-        ImageIcon bellIcon = new ImageIcon("img/bell.png");
+        ImageIcon bellIcon = new ImageIcon("img/PlayGame/bell.png");
         Image bellImage  = bellIcon.getImage().getScaledInstance(165, 165, Image.SCALE_SMOOTH);
         Btn_Bell = new JButton(new ImageIcon(bellImage));
         Btn_Bell.setBorderPainted(false);
@@ -453,11 +441,11 @@ public class JF_PlayGame extends JFrame {
             else {
                 String[] m = card.split("#");
                 if (isRotated) {
-                    ImageIcon FruitImageIcon = new ImageIcon("img/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#ROW.png");
+                    ImageIcon FruitImageIcon = new ImageIcon("img/PlayGame/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#ROW.png");
                     Image FruitImage = FruitImageIcon.getImage().getScaledInstance(225, 150, Image.SCALE_SMOOTH);
                     Lb_playerCard.setIcon(new ImageIcon(FruitImage));
                 } else {
-                    ImageIcon FruitImageIcon = new ImageIcon("img/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#COLUMN.png");
+                    ImageIcon FruitImageIcon = new ImageIcon("img/PlayGame/FRUIT/" + m[0] + "/" + m[0] + "#" + m[1] + "#COLUMN.png");
                     Image FruitImage = FruitImageIcon.getImage().getScaledInstance(150, 225, Image.SCALE_SMOOTH);
                     Lb_playerCard.setIcon(new ImageIcon(FruitImage));
                 }

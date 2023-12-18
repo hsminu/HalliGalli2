@@ -10,14 +10,11 @@ import java.util.List;
 
 public class SCGameUser extends Thread{
     HGServerMain server;
-    Socket socket;
 
     SCUser scu;
     GameRoom myGRoom;
 
-    OutputStream os;
     DataOutputStream dos;
-    InputStream is;
     DataInputStream dis;
 
     String msg;            //수신 메시지를 저장할 필드
@@ -28,7 +25,6 @@ public class SCGameUser extends Thread{
 
     SCGameUser(SCUser scu, GameRoom gameRoom){
         this.scu = scu;
-        this.socket = scu.socket;
         this.server = scu.server;
         this.nickname = scu.nickname;
         this.myGRoom = gameRoom;
@@ -38,14 +34,8 @@ public class SCGameUser extends Thread{
         hand = Collections.synchronizedList(new ArrayList<>());
         floor = Collections.synchronizedList(new ArrayList<>());
 
-        try {
-            os = this.socket.getOutputStream();
-            dos = new DataOutputStream(os);
-            is = this.socket.getInputStream();
-            dis = new DataInputStream(is);
-        } catch (IOException e){
-            System.out.println(e.toString());
-        }
+        this.dos = scu.dos;
+        this.dis = scu.dis;
     }
 
     public String GetTopofFloor(){
@@ -87,10 +77,7 @@ public class SCGameUser extends Thread{
                     if(m[0].equals(MessageTag.GEXIT + "")){
                         myGRoom.allGu.remove(this);
 
-                        synchronized (this.scu) {
-                            this.scu.gamestart = false;
-                            this.scu.notify();
-                        }
+                        this.scu.gamestart = false;
 
                         this.interrupt();
                     }

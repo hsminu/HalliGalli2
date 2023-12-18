@@ -21,7 +21,7 @@ public class CSUser {
 
     String Name;
     String SERVER_IP;
-    int SERVER_PORT;
+    int SERVER_PORT = 12345;
 
     OutputStream os;
     DataOutputStream dos;
@@ -31,10 +31,8 @@ public class CSUser {
     Thread receiveThread;   //수신 쓰레드
 
 
-    CSUser(String name, String SERVER_IP, int SERVER_PORT, HGClientMain client){
-        this.Name = name;
+    CSUser(String SERVER_IP, HGClientMain client){
         this.SERVER_IP = SERVER_IP;
-        this.SERVER_PORT = SERVER_PORT;
         this.client = client;
     }
 
@@ -47,40 +45,46 @@ public class CSUser {
             is = socket.getInputStream();
             dis = new DataInputStream(is);
 
-            dos.writeUTF(MessageTag.ACCESS +"//"+Name);
-
-            //닉네임 중복 확인
-            while(true){
-                String msg = dis.readUTF();
-
-                if(msg.equals(MessageTag.ACCESS+"//"+MessageTag.FAIL)){
-                    String userInput = JOptionPane.showInputDialog("닉네임 중복! 다른 닉네임을 입력하세요: ");
-
-                    // 사용자가 취소를 누르거나 입력하지 않은 경우
-                    if (userInput == null || userInput.isEmpty()) {
-                        disConnect();
-                        System.exit(1);
-                    }
-
-                    this.Name = userInput;
-                    dos.writeUTF(MessageTag.ACCESS +"//"+Name);
-                }
-
-                if(msg.equals(MessageTag.ACCESS+"//"+MessageTag.OKAY))
-                    break;
-            }
-
-
             System.out.println("[Client] 서버 접속 완료 > "+socket.toString());
 
-            client.jf_robby.setVisible(true);
-            client.jf_login.setVisible(false);
         } catch (IOException e){
             System.out.println("[Client] 연결 실패 > " + e.toString());
             throw e;
         }
+    }
 
-        //메시지 수신 쓰레드
+    boolean isNotOver(String name){
+        try {
+            dos.writeUTF(MessageTag.OVER+"//"+name);
+
+            String msg = dis.readUTF();
+            if(msg.equals(MessageTag.OVER+"//"+MessageTag.OKAY)){
+                return true;
+            } else if(msg.equals(MessageTag.OVER+"//"+MessageTag.FAIL)){
+                return false;
+            }
+        } catch (IOException e){
+            System.out.println("[Client] 입출력 오류 > " + e.toString());
+        }
+
+        return false;
+    }
+
+    void Join(String name) {
+
+        if(!isNotOver(name))
+            return;
+
+        this.Name = name;
+        try{
+            dos.writeUTF(MessageTag.ACCESS+"//"+this.Name);
+        } catch (IOException e){
+            System.out.println("[Client] 입출력 오류 > " + e.toString());
+        }
+
+        client.jf_robby.setVisible(true);
+        client.jf_login.setVisible(false);
+
         receiveThread = new Thread(() -> {
             try {
                 while (true) {
@@ -157,16 +161,16 @@ public class CSUser {
 
                         // 게임 쓰레드가 종료될 때까지 대기
                         client.jf_playGame.gameControlThread.join();
+                        System.out.println("awake");
                     }
                 }
             } catch (IOException e) {
                 System.out.println("[Client] 입출력 오류 > " + e.toString());
             } catch (InterruptedException e) {
-                ;
+                System.out.println(e.toString());
             }
         });
         receiveThread.start();
-
     }
 
     /**

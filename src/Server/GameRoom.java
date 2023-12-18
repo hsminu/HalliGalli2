@@ -46,9 +46,10 @@ public class GameRoom extends Thread{
 
         for(SCUser scu : room.scu) {
             scu.myGRoom = this;
-            scu.gamestart = true;
 
-            allGu.add(new SCGameUser(scu, this));
+            SCGameUser gu = new SCGameUser(scu, this);
+            scu.myGameUSer = gu;
+            allGu.add(gu);
         }
 
         //순서를 섞음
@@ -100,6 +101,7 @@ public class GameRoom extends Thread{
         //모든 게임유저에 대해 쓰레드를 시작
         for(SCGameUser gu : allGu) {
             aliveGu.add(gu);
+            gu.scu.gamestart = true;
             gu.start();
         }
     }
@@ -156,7 +158,9 @@ public class GameRoom extends Thread{
                                 Collections.shuffle(aliveGu.get(eventPlayerorder).hand);
                             } else { //실패
                                 msg += MessageTag.FBELL + "";
-                                card_underbell.add(aliveGu.get(eventPlayerorder).hand.remove(0));
+
+                                if (!aliveGu.get(eventPlayerorder).hand.isEmpty())
+                                    card_underbell.add(aliveGu.get(eventPlayerorder).hand.remove(0));
                             }
 
                             SendAllUser(msg);
@@ -164,22 +168,29 @@ public class GameRoom extends Thread{
 
                             //종이 울린 후 죽은 플레이어가 있는지 확인
                             msg = MessageTag.GDEAD + "//";
-                            Iterator<SCGameUser> iterator = aliveGu.iterator();
-                            while (iterator.hasNext()) {
-                                SCGameUser gu = iterator.next();
-                                if (gu.hand.isEmpty()) {
-                                    msg += gu.nickname + "@@";
 
-                                    iterator.remove();
+                            List<SCGameUser> deadPlayer = new ArrayList<>();
+                            for (SCGameUser scu : aliveGu) {
+                                if (scu.hand.isEmpty()) {
+                                    msg += scu.nickname + "@@";
                                     aliveUser--;
+                                    deadPlayer.add(scu);
                                 }
                             }
+
+                            for (SCGameUser scu : deadPlayer) {
+                                aliveGu.remove(scu);
+                            }
+
+
                             //죽은 플레이어가 있을 때 메시지를 보냄
-                            if(msg.split("//").length >= 2)
+                            if (msg.split("//").length >= 2)
                                 SendAllUser(msg);
 
                             SendAllUser(FloorCards());
                             SendAllUser(RemainCards());
+
+                            //살아있는 플레이어가 한 명일 때
 
                             Thread.sleep(3000);
 
@@ -188,12 +199,12 @@ public class GameRoom extends Thread{
                         }
                     }
 
-                    //살아있는 플레이어가 한 명일 때
-                    if(aliveUser == 1) {
-                        msg = MessageTag.GEND +"";
+                    if(aliveUser <= 1) {
+                        msg = MessageTag.GEND + "";
                         SendAllUser(msg);
 
                         server.Rooms.remove(myRoom);
+
                         this.interrupt();
                         //유저들에게 알리고 이 쓰레드를 중지시킴
                     }

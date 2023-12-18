@@ -35,6 +35,8 @@ public class SCUser extends Thread{
     Room myRoom;           //현재 입장해있는 방
     GameRoom myGRoom;      //현재 입장해있는 게임 방
 
+    SCGameUser myGameUSer;
+
     int userstate = 0;     //0:not ready, 1: ready, 2:head
     boolean gamestart = false;
 
@@ -70,31 +72,33 @@ public class SCUser extends Thread{
 
                 String[] m = msg.split("//"); //읽은 데이터를 '//'로 파싱
 
-                //유저 접속 요청
-                if(m[0].equals(MessageTag.ACCESS+"")){
-                    //중복된 이름 확인
-                    boolean isOver = false;
-                    for(SCUser scu : allUsers){
-                        if(scu.nickname.equals(m[1])){
-                            dos.writeUTF(MessageTag.ACCESS + "//"+MessageTag.FAIL);
-                            isOver = true;
-                            break;
+                synchronized (this) {
+                    //유저 접속 요청
+                    if (m[0].equals(MessageTag.OVER + "")) {
+                        //중복된 이름 확인
+                        boolean isOver = false;
+                        for (SCUser scu : allUsers) {
+                            if (scu.nickname.equals(m[1])) {
+                                dos.writeUTF(MessageTag.OVER + "//" + MessageTag.FAIL);
+                                isOver = true;
+                                break;
+                            }
                         }
+                        if (isOver)
+                            continue;
                     }
-                    if(isOver)
-                        continue;
 
+                    dos.writeUTF(MessageTag.OVER + "//" + MessageTag.OKAY); //처리 완료 후 OKAY메시지 전송
+                }
+
+                if(m[0].equals(MessageTag.ACCESS+"")) {
                     nickname = m[1];
 
-                    synchronized (this) {
-                        allUsers.add(this);
-                        waitUsers.add(this);
-                    }
-
-                    dos.writeUTF(MessageTag.ACCESS + "//"+MessageTag.OKAY); //처리 완료 후 OKAY메시지 전송
+                    allUsers.add(this);
+                    waitUsers.add(this);
 
                     sendWait(connectedUser()); //새 유저가 들어왔으므로 모든 유저에게 유저 목록 전송
-                    if(Rooms.size() > 0){
+                    if (Rooms.size() > 0) {
                         sendWait(roomInfo());  //방이 하나 이상일 경우 모든 유저에게 방 목록을 전송
                     }
                 }
@@ -206,10 +210,12 @@ public class SCUser extends Thread{
 
                 //게임 시작 요청
                 if(m[0].equals(MessageTag.START+"")){
-                    GameRoom gr = new GameRoom(server, myRoom);
-                    gr.start();
+                    synchronized (this) {
+                        GameRoom gr = new GameRoom(server, myRoom);
+                        gr.start();
 
-                    Rooms.remove(myRoom);
+                        Rooms.remove(myRoom);
+                    }
                 }
 
                 //종료
@@ -219,13 +225,12 @@ public class SCUser extends Thread{
 
                 //게임 시작일 때
                 if(gamestart) {
+                    myRoom = null;
                     //이 쓰레드를 대기시킴
-                    synchronized (this){
-                        this.wait();
-                    }
+                    myGameUSer.join();
+                    System.out.println("awake");
 
                     //게임이 끝난 후 대기실 정보를 보냄
-                    myRoom = null;
                     waitUsers.add(this);
 
                     sendWait(connectedUser());

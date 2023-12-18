@@ -6,6 +6,7 @@ public enum MessageTag {
 
 
     ACCESS, //접속
+    OVER,
     CROOM,  //방 생성
     VROOM,  //방 목록
     UROOM,  //방 인원
@@ -13,7 +14,6 @@ public enum MessageTag {
     CUSER,  //접속 유저
     READY,  //레디
     START,
-    CREDY,  //레디 체
     PEXIT,
     REXIT,
 
@@ -27,10 +27,7 @@ public enum MessageTag {
     DCARD,  //카드 놓기
     SBELL,  //벨 누르기 성공
     FBELL,  //벨 누르기 실패
-    GWAIT,
     GDEAD,  //게임 탈락
     GEXIT,
-    GEND,
-    WIN,
-    LOSE;
+    GEND
 }
