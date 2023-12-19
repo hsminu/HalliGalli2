@@ -53,7 +53,7 @@ public class JF_Login extends JFrame {
 		Btn_GameExit = new JButton(new ImageIcon(GameExitImage));
 		Btn_GameExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				System.exit(0);
 			}
 		});
 		Btn_GameExit.setBounds(133, 413, 208, 82);
@@ -82,8 +82,10 @@ public class JF_Login extends JFrame {
 					Lb_Des.setText("닉네임");
 					Btn_RandomName.setVisible(true);
 					Btn_Join.setVisible(true);
+					Tf_InputField.setText("");
 				} catch (IOException ex) {
 					JOptionPane.showMessageDialog(client.jf_login, "연결 실패", "경고", JOptionPane.WARNING_MESSAGE);
+					client.csUser = null;
 				}
 			}
 		});
@@ -99,6 +101,11 @@ public class JF_Login extends JFrame {
 		Btn_Join = new JButton(new ImageIcon(JoinImage));
 		Btn_Join.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				String nameRegex = "^[a-zA-Z0-9]+$";
+				if (!Tf_InputField.getText().matches(nameRegex)) {
+					JOptionPane.showMessageDialog(client.jf_login, "입력을 확인하세요", "경고", JOptionPane.WARNING_MESSAGE);
+				}
+
 				if (client.csUser.isNotOver(Tf_InputField.getText())) {
 					client.csUser.Join(Tf_InputField.getText());
 				} else{

@@ -198,6 +198,13 @@ public class JF_PlayGame extends JFrame {
 
         client.jf_robby.setEnabled(true);
         client.jf_robby.setVisible(true);
+
+        try{
+            dos.writeUTF(MessageTag.CUSER+"");
+            dos.writeUTF(MessageTag.VROOM+"");
+        } catch (IOException e){
+            System.out.println(e.toString());
+        }
     }
 
     //게임마다 이미

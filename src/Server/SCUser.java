@@ -218,6 +218,13 @@ public class SCUser extends Thread{
                     }
                 }
 
+                if(m[0].equals(MessageTag.CUSER+"")){
+                    sendWait(connectedUser());
+                }
+                if(m[0].equals(MessageTag.VROOM+"")){
+                    sendWait(roomInfo());
+                }
+
                 //종료
                 if(m[0].equals(MessageTag.PEXIT+"")){
                     disConnect();
@@ -241,10 +248,7 @@ public class SCUser extends Thread{
         } catch (IOException e){
             System.out.println("[Server] 입출력 오류 > " + e.toString());
 
-            //사용자 강제종료
-            if(e.toString().equals("Connection reset")){
-                disConnect();
-            }
+            disConnect();
 
         } catch (InterruptedException e){
             System.out.println("[Server] Thread" + this.nickname + " 중지 > " + e.toString());;
